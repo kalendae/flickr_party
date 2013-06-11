@@ -50,10 +50,15 @@ class FlickrParty
     "http://flickr.com/services/auth/?api_key=#{@api_key}&perms=#{perms}&frob=#{@frob}&api_sig=#{sig}&extra=#{extra}"
   end
   
-  def complete_auth(frob='put_your_frob_here')
-    @frob ||= frob
-    @auth = self.flickr.auth.getToken('frob' => @frob)['rsp']['auth']
-    @token = @auth['token']
+  def complete_auth(frob=nil)
+    @frob = frob if frob
+    response = self.flickr.auth.getToken('frob' => @frob)['rsp']
+    if response['stat'] == 'fail'
+      raise response['err']['msg']
+    else
+      @auth = response['auth']
+      @token = @auth['token']
+    end
   end
 
   def photo_url(photo_hash, size=nil)
